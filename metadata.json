@@ -1,0 +1,5 @@
+{
+  "name": "Nova Resume AI",
+  "description": "A modern, AI-powered resume builder that helps you craft the perfect CV using Google Gemini.",
+  "requestFramePermissions": []
+}

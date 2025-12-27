@@ -34,13 +34,37 @@ export interface Project {
   description: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  link: string;
+}
+
+export interface CustomSectionItem {
+  id: string;
+  title: string;
+  subtitle: string; // e.g. Issuer, Role, etc.
+  date: string;
+  description: string;
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  items: CustomSectionItem[];
+}
+
 export interface ResumeData {
   personalInfo: PersonalInfo;
   experience: Experience[];
   education: Education[];
   skills: string[];
   projects: Project[];
+  certifications: Certification[];
+  customSections: CustomSection[];
   themeColor: string;
 }
 
-export type SectionType = 'personal' | 'experience' | 'education' | 'skills' | 'projects';
+export type SectionType = 'personal' | 'experience' | 'education' | 'skills' | 'projects' | 'certifications' | string;

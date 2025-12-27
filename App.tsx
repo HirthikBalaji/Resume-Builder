@@ -59,6 +59,30 @@ const INITIAL_DATA: ResumeData = {
           link: 'weather-forecaster-demo.com'
       }
   ],
+  certifications: [
+    {
+      id: '1',
+      name: 'AWS Certified Cloud Practitioner',
+      issuer: 'Amazon Web Services',
+      date: 'Aug 2023',
+      link: 'aws.amazon.com/verify'
+    }
+  ],
+  customSections: [
+    {
+      id: '1',
+      title: 'Awards & Honors',
+      items: [
+        {
+          id: '1',
+          title: 'Dean’s List',
+          subtitle: 'University of Washington',
+          date: '2021 - 2024',
+          description: 'Awarded for maintaining a GPA above 3.5 for 6 consecutive semesters.'
+        }
+      ]
+    }
+  ],
   themeColor: '#4f46e5', // Indigo-600
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResumeData, Experience, Education, Project } from '../types';
+import { ResumeData, Experience, Education, Project, Certification, CustomSection, CustomSectionItem } from '../types';
 import { MapPin, Mail, Phone, Globe, Linkedin, ExternalLink } from 'lucide-react';
 
 interface ResumePreviewProps {
@@ -38,7 +38,7 @@ const EditableText: React.FC<{
 };
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdate }) => {
-  const { personalInfo, experience, education, skills, projects, themeColor } = data;
+  const { personalInfo, experience, education, skills, projects, certifications, customSections, themeColor } = data;
 
   const handleInfoChange = (field: keyof typeof personalInfo, value: string) => {
     if (onUpdate) {
@@ -76,12 +76,44 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
     }
   };
 
+  const updateCertification = (id: string, field: keyof Certification, value: any) => {
+    if (onUpdate) {
+      onUpdate({
+        ...data,
+        certifications: certifications.map(c => c.id === id ? { ...c, [field]: value } : c)
+      });
+    }
+  };
+
   const updateSkill = (index: number, value: string) => {
     if (onUpdate) {
       const newSkills = [...skills];
       newSkills[index] = value;
       onUpdate({ ...data, skills: newSkills });
     }
+  };
+
+  const updateCustomSectionTitle = (id: string, title: string) => {
+    if (onUpdate) {
+       onUpdate({
+           ...data,
+           customSections: customSections.map(s => s.id === id ? {...s, title} : s)
+       });
+    }
+  };
+
+  const updateCustomItem = (sectionId: string, itemId: string, field: keyof CustomSectionItem, value: string) => {
+      if (onUpdate) {
+          onUpdate({
+              ...data,
+              customSections: customSections.map(s => 
+                s.id === sectionId ? {
+                    ...s,
+                    items: s.items.map(i => i.id === itemId ? {...i, [field]: value} : i)
+                } : s
+              )
+          });
+      }
   };
 
   return (
@@ -112,11 +144,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
           />
           
           <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-            {/* Always show fields in editable mode so user can click to add if empty, 
-                but for cleaner look we usually hide empty. 
-                For WYSIWYG, we render if it has value OR if we want to allow editing. 
-                Let's stick to rendering if it exists or placeholder for main ones. */}
-            
              <div className="flex items-center gap-1">
                 <Mail size={14} /> 
                 <EditableText value={personalInfo.email} onChange={(v) => handleInfoChange('email', v)} placeholder="email@example.com" />
@@ -305,6 +332,93 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
             </div>
           </section>
         )}
+
+        {/* Certifications */}
+        {certifications.length > 0 && (
+             <section className="mb-6">
+                <h2 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1" style={{ color: themeColor, borderColor: '#e5e7eb' }}>
+                    Certifications
+                </h2>
+                <div className="space-y-2">
+                    {certifications.map(cert => (
+                        <div key={cert.id} className="break-inside-avoid">
+                            <div className="flex justify-between items-baseline">
+                                <div className="flex items-center gap-2">
+                                    <EditableText 
+                                        tagName="h3"
+                                        value={cert.name}
+                                        onChange={(v) => updateCertification(cert.id, 'name', v)}
+                                        className="font-bold text-gray-900"
+                                    />
+                                    {cert.link && (
+                                        <a href={cert.link.startsWith('http') ? cert.link : `https://${cert.link}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-600 print:hidden">
+                                        <ExternalLink size={10} />
+                                        </a>
+                                    )}
+                                </div>
+                                <EditableText 
+                                    tagName="span"
+                                    value={cert.date}
+                                    onChange={(v) => updateCertification(cert.id, 'date', v)}
+                                    className="text-xs text-gray-500"
+                                />
+                            </div>
+                            <EditableText 
+                                tagName="div"
+                                value={cert.issuer}
+                                onChange={(v) => updateCertification(cert.id, 'issuer', v)}
+                                className="text-xs text-gray-600 font-medium"
+                            />
+                        </div>
+                    ))}
+                </div>
+             </section>
+        )}
+
+        {/* Custom Sections */}
+        {customSections.map(section => (
+            <section key={section.id} className="mb-6 break-inside-avoid">
+                 <h2 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1 flex items-center gap-2" style={{ color: themeColor, borderColor: '#e5e7eb' }}>
+                    <EditableText 
+                        tagName="span"
+                        value={section.title}
+                        onChange={(v) => updateCustomSectionTitle(section.id, v)}
+                    />
+                </h2>
+                <div className="space-y-3">
+                    {section.items.map(item => (
+                        <div key={item.id} className="break-inside-avoid">
+                            <div className="flex justify-between items-baseline mb-1">
+                                <EditableText 
+                                    tagName="h3"
+                                    value={item.title}
+                                    onChange={(v) => updateCustomItem(section.id, item.id, 'title', v)}
+                                    className="font-bold text-gray-900"
+                                />
+                                <EditableText 
+                                    tagName="span"
+                                    value={item.date}
+                                    onChange={(v) => updateCustomItem(section.id, item.id, 'date', v)}
+                                    className="text-xs text-gray-500"
+                                />
+                            </div>
+                            <EditableText 
+                                tagName="div"
+                                value={item.subtitle}
+                                onChange={(v) => updateCustomItem(section.id, item.id, 'subtitle', v)}
+                                className="text-xs text-gray-600 font-medium mb-1"
+                            />
+                            <EditableText 
+                                tagName="p"
+                                value={item.description}
+                                onChange={(v) => updateCustomItem(section.id, item.id, 'description', v)}
+                                className="text-gray-600 text-xs whitespace-pre-wrap"
+                            />
+                        </div>
+                    ))}
+                </div>
+            </section>
+        ))}
 
       </div>
     </div>

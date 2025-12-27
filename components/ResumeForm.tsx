@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ResumeData, Experience, Education, Project } from '../types';
-import { Plus, Trash2, Sparkles, ChevronDown, ChevronUp, Wand2 } from 'lucide-react';
+import { ResumeData, Experience, Education, Project, Certification, CustomSection, CustomSectionItem } from '../types';
+import { Plus, Trash2, Sparkles, ChevronDown, ChevronUp, Wand2, LayoutTemplate } from 'lucide-react';
 import * as geminiService from '../services/gemini';
 
 interface ResumeFormProps {
@@ -111,6 +111,69 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
 
   const removeProject = (id: string) => {
       onChange({ ...data, projects: data.projects.filter(p => p.id !== id) });
+  };
+
+  // --- Certifications Handlers ---
+
+  const addCertification = () => {
+    const newCert: Certification = { id: crypto.randomUUID(), name: '', issuer: '', date: '', link: '' };
+    onChange({ ...data, certifications: [newCert, ...data.certifications] });
+    setActiveSection(`cert-${newCert.id}`);
+  };
+
+  const updateCertification = (id: string, field: keyof Certification, value: string) => {
+    onChange({ ...data, certifications: data.certifications.map(c => c.id === id ? { ...c, [field]: value } : c) });
+  };
+
+  const removeCertification = (id: string) => {
+    onChange({ ...data, certifications: data.certifications.filter(c => c.id !== id) });
+  };
+
+  // --- Custom Section Handlers ---
+
+  const addCustomSection = () => {
+    const newSection: CustomSection = { id: crypto.randomUUID(), title: 'Custom Section', items: [] };
+    onChange({ ...data, customSections: [...data.customSections, newSection] });
+    setActiveSection(`cust-${newSection.id}`);
+  };
+
+  const updateCustomSectionTitle = (id: string, title: string) => {
+    onChange({ ...data, customSections: data.customSections.map(s => s.id === id ? { ...s, title } : s) });
+  };
+
+  const removeCustomSection = (id: string) => {
+    onChange({ ...data, customSections: data.customSections.filter(s => s.id !== id) });
+  };
+
+  const addCustomItem = (sectionId: string) => {
+    const newItem: CustomSectionItem = { id: crypto.randomUUID(), title: '', subtitle: '', date: '', description: '' };
+    onChange({
+      ...data,
+      customSections: data.customSections.map(s => 
+        s.id === sectionId ? { ...s, items: [...s.items, newItem] } : s
+      )
+    });
+  };
+
+  const updateCustomItem = (sectionId: string, itemId: string, field: keyof CustomSectionItem, value: string) => {
+    onChange({
+      ...data,
+      customSections: data.customSections.map(s => 
+        s.id === sectionId ? { 
+          ...s, 
+          items: s.items.map(i => i.id === itemId ? { ...i, [field]: value } : i) 
+        } : s
+      )
+    });
+  };
+
+  const removeCustomItem = (sectionId: string, itemId: string) => {
+     onChange({
+      ...data,
+      customSections: data.customSections.map(s => 
+        s.id === sectionId ? { ...s, items: s.items.filter(i => i.id !== itemId) } : s
+      )
+    });
   };
 
 
@@ -420,6 +483,62 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
         </div>
       </div>
 
+      {/* Certifications */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+          <h3 className="font-semibold text-gray-800">Certifications</h3>
+          <button onClick={addCertification} className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center gap-1 transition-colors">
+            <Plus size={16} /> Add
+          </button>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {data.certifications.map((cert) => (
+             <div key={cert.id} className="group">
+               <div 
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => toggleSection(`cert-${cert.id}`)}
+              >
+                <div>
+                   <h4 className="font-medium text-gray-800 text-sm">{cert.name || '(No Name)'}</h4>
+                   <p className="text-xs text-gray-500">{cert.issuer}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                   <button 
+                     onClick={(e) => { e.stopPropagation(); removeCertification(cert.id); }}
+                     className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                   >
+                     <Trash2 size={16} />
+                   </button>
+                   {activeSection === `cert-${cert.id}` ? <ChevronUp size={16} className="text-gray-400"/> : <ChevronDown size={16} className="text-gray-400"/>}
+                </div>
+              </div>
+               {activeSection === `cert-${cert.id}` && (
+                 <div className="p-5 bg-white space-y-4 animate-in slide-in-from-top-2 duration-200">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <label className="block text-xs font-medium text-gray-700 mb-1">Certification Name</label>
+                       <input type="text" value={cert.name} onChange={(e) => updateCertification(cert.id, 'name', e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="AWS Certified..." />
+                     </div>
+                     <div>
+                       <label className="block text-xs font-medium text-gray-700 mb-1">Issuer</label>
+                       <input type="text" value={cert.issuer} onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Amazon Web Services" />
+                     </div>
+                     <div>
+                       <label className="block text-xs font-medium text-gray-700 mb-1">Date</label>
+                       <input type="text" value={cert.date} onChange={(e) => updateCertification(cert.id, 'date', e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Aug 2023" />
+                     </div>
+                     <div>
+                       <label className="block text-xs font-medium text-gray-700 mb-1">Link (Optional)</label>
+                       <input type="text" value={cert.link} onChange={(e) => updateCertification(cert.id, 'link', e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="https://..." />
+                     </div>
+                   </div>
+                 </div>
+               )}
+             </div>
+          ))}
+        </div>
+      </div>
+
       {/* Skills */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <SectionTitle title="Skills" isOpen={activeSection === 'skills'} onClick={() => toggleSection('skills')} />
@@ -449,6 +568,100 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
           </div>
         )}
       </div>
+
+      {/* Custom Sections */}
+      {data.customSections.map((section) => (
+         <div key={section.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+             <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      value={section.title} 
+                      onChange={(e) => updateCustomSectionTitle(section.id, e.target.value)}
+                      className="font-semibold text-gray-800 bg-transparent outline-none focus:ring-2 focus:ring-indigo-500/20 rounded px-1"
+                      placeholder="Section Title"
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                   <button onClick={() => addCustomItem(section.id)} className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center gap-1 transition-colors">
+                        <Plus size={16} /> Item
+                   </button>
+                   <button onClick={() => removeCustomSection(section.id)} className="text-gray-400 hover:text-red-500 ml-2">
+                       <Trash2 size={16} />
+                   </button>
+                </div>
+             </div>
+             
+             <div className="divide-y divide-gray-100">
+                {section.items.map((item) => (
+                    <div key={item.id} className="group">
+                        <div 
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => toggleSection(`cust-${section.id}-${item.id}`)}
+                        >
+                             <div>
+                                <h4 className="font-medium text-gray-800 text-sm">{item.title || '(No Title)'}</h4>
+                                <p className="text-xs text-gray-500">{item.subtitle}</p>
+                             </div>
+                             <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); removeCustomItem(section.id, item.id); }}
+                                    className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                                {activeSection === `cust-${section.id}-${item.id}` ? <ChevronUp size={16} className="text-gray-400"/> : <ChevronDown size={16} className="text-gray-400"/>}
+                             </div>
+                        </div>
+
+                        {activeSection === `cust-${section.id}-${item.id}` && (
+                            <div className="p-5 bg-white space-y-4 animate-in slide-in-from-top-2 duration-200">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                     <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
+                                        <input type="text" value={item.title} onChange={(e) => updateCustomItem(section.id, item.id, 'title', e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                     </div>
+                                     <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Subtitle</label>
+                                        <input type="text" value={item.subtitle} onChange={(e) => updateCustomItem(section.id, item.id, 'subtitle', e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Role / Issuer / Location" />
+                                     </div>
+                                     <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Date</label>
+                                        <input type="text" value={item.date} onChange={(e) => updateCustomItem(section.id, item.id, 'date', e.target.value)} className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="2023" />
+                                     </div>
+                                 </div>
+                                 <div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <label className="block text-xs font-medium text-gray-700">Description (Optional)</label>
+                                        <AIButton 
+                                          loading={loadingField === `cust-desc-${item.id}`} 
+                                          onClick={() => handleAiEnhance(`cust-desc-${item.id}`, item.description, section.title, (txt) => updateCustomItem(section.id, item.id, 'description', txt))}
+                                        />
+                                    </div>
+                                    <textarea 
+                                        value={item.description} 
+                                        onChange={(e) => updateCustomItem(section.id, item.id, 'description', e.target.value)} 
+                                        rows={2} 
+                                        className="w-full p-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ))}
+                {section.items.length === 0 && <div className="p-4 text-center text-gray-400 text-xs">No items in this section.</div>}
+             </div>
+         </div>
+      ))}
+
+      {/* Add Custom Section Button */}
+      <button 
+        onClick={addCustomSection}
+        className="w-full py-3 bg-white border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-medium hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"
+      >
+        <LayoutTemplate size={18} />
+        Add Custom Section
+      </button>
 
     </div>
   );

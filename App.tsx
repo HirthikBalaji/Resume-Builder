@@ -176,7 +176,8 @@ function App() {
       <style>{`
         @media print {
           @page {
-            margin: 0;
+            /* Create space for header and footer on every page */
+            margin: 15mm; 
             size: A4;
           }
           body {
@@ -209,10 +210,16 @@ function App() {
              -webkit-print-color-adjust: exact;
           }
           
-          /* Prevent breaking inside items */
+          /* Prevent breaking inside items and sections */
           .break-inside-avoid {
              break-inside: avoid;
              page-break-inside: avoid;
+          }
+
+          /* Ensure headings stick to their content */
+          h1, h2, h3, h4 {
+            break-after: avoid;
+            page-break-after: avoid;
           }
         }
       `}</style>

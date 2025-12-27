@@ -119,10 +119,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
   return (
     <div className="w-full flex justify-center p-4 bg-gray-100 print:p-0 print:bg-white overflow-hidden">
       {/* A4 Paper Container */}
+      {/* Added print:p-0 to remove padding in print mode since @page handles margins now */}
       <div 
         ref={previewRef}
         id="resume-preview"
-        className="bg-white shadow-2xl print:shadow-none w-[210mm] min-h-[297mm] p-[10mm] text-sm text-gray-800 leading-normal"
+        className="bg-white shadow-2xl print:shadow-none w-[210mm] min-h-[297mm] p-[10mm] print:p-0 text-sm text-gray-800 leading-normal"
         style={{ fontFamily: 'Inter, sans-serif' }}
       >
         {/* Header */}
@@ -190,7 +191,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
 
         {/* Education (Moved top for Freshers) */}
         {education.length > 0 && (
-          <section className="mb-6">
+          <section className="mb-6 break-inside-avoid">
             <h2 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1" style={{ color: themeColor, borderColor: '#e5e7eb' }}>
               Education
             </h2>
@@ -254,7 +255,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
 
         {/* Projects (Important for Freshers) */}
         {projects.length > 0 && (
-            <section className="mb-6">
+            <section className="mb-6 break-inside-avoid">
             <h2 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1" style={{ color: themeColor, borderColor: '#e5e7eb' }}>
                 Projects
             </h2>
@@ -296,7 +297,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
 
         {/* Experience */}
         {experience.length > 0 && (
-          <section className="mb-6">
+          <section className="mb-6 break-inside-avoid">
             <h2 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1" style={{ color: themeColor, borderColor: '#e5e7eb' }}>
               Experience
             </h2>
@@ -335,7 +336,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data, previewRef, onUpdat
 
         {/* Certifications */}
         {certifications.length > 0 && (
-             <section className="mb-6">
+             <section className="mb-6 break-inside-avoid">
                 <h2 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1" style={{ color: themeColor, borderColor: '#e5e7eb' }}>
                     Certifications
                 </h2>

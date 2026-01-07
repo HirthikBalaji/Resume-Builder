@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ResumeForm from './components/ResumeForm';
 import ResumePreview from './components/ResumePreview';
 import { ResumeData } from './types';
-import { Download, Sparkles, Layout, Palette } from 'lucide-react';
+import { Download, Sparkles, Layout, Palette, FileJson, Upload } from 'lucide-react';
 
 const INITIAL_DATA: ResumeData = {
   personalInfo: {
@@ -97,11 +97,60 @@ const THEME_COLORS = [
 ];
 
 function App() {
-  const [resumeData, setResumeData] = useState<ResumeData>(INITIAL_DATA);
+  const [resumeData, setResumeData] = useState<ResumeData>(() => {
+    const saved = localStorage.getItem('resumeData');
+    return saved ? JSON.parse(saved) : INITIAL_DATA;
+  });
   const previewRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem('resumeData', JSON.stringify(resumeData));
+  }, [resumeData]);
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(resumeData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `resume-${resumeData.personalInfo.fullName.replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const result = e.target?.result as string;
+        const parsedData = JSON.parse(result);
+        // Simple validation to check if it looks like our data
+        if (parsedData.personalInfo && Array.isArray(parsedData.experience)) {
+            setResumeData(parsedData);
+        } else {
+            alert("Invalid resume JSON format.");
+        }
+      } catch (error) {
+        console.error("Failed to parse JSON", error);
+        alert("Invalid JSON file");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset
   };
 
   return (
@@ -137,6 +186,34 @@ function App() {
               <Download size={16} />
               Export PDF
             </button>
+
+            <div className="h-6 w-px bg-gray-300 mx-2 hidden md:block"></div>
+
+            <div className="flex gap-2">
+                <button 
+                onClick={handleExport}
+                className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all shadow-sm active:transform active:scale-95"
+                title="Save as JSON"
+                >
+                <FileJson size={16} />
+                <span className="hidden sm:inline">Save</span>
+                </button>
+                <button 
+                onClick={handleImportClick}
+                className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all shadow-sm active:transform active:scale-95"
+                title="Load JSON"
+                >
+                <Upload size={16} />
+                <span className="hidden sm:inline">Load</span>
+                </button>
+                <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    accept=".json" 
+                    className="hidden" 
+                />
+            </div>
           </div>
         </div>
       </nav>
